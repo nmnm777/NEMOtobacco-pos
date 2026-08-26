@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/app_section.dart';
+import '../providers/pos_provider.dart';
 
 class Sidebar extends StatelessWidget {
   final AppSection selected;
@@ -57,8 +59,14 @@ class Sidebar extends StatelessWidget {
               ));
 
               if (confirm == true) {
-                // clear cart and navigate to settings as a placeholder
-                onSelect(AppSection.settings);
+                // clear cart (use Provider) and navigate to cashier
+                try {
+                  final pos = Provider.of<PosProvider>(context, listen: false);
+                  pos.clearCart();
+                } catch (e) {
+                  // ignore if provider not available
+                }
+                onSelect(AppSection.cashier);
               }
             },
             icon: const Icon(Icons.logout),

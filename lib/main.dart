@@ -116,7 +116,16 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed: () async {
             try {
               final path = await DBHelper.exportDatabaseToDownloads();
-              if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم تصدير قاعدة البيانات: $path')));
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('تم تصدير قاعدة البيانات: $path'),
+                  action: SnackBarAction(label: 'فتح', onPressed: () async {
+                    // try to open the exported file
+                    final ok = await FileUtils.openFile(path);
+                    if (!ok && context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر فتح الملف على هذا النظام')));
+                  }),
+                ));
+              }
             } catch (e) {
               if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطأ في التصدير: $e')));
             }

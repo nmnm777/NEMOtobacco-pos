@@ -4,6 +4,7 @@ import '../providers/pos_provider.dart';
 import '../models/transaction.dart';
 import 'transaction_detail.dart';
 import '../services/pdf_service.dart';
+import '../services/file_utils.dart';
 
 class TransactionsPage extends StatelessWidget {
   const TransactionsPage({super.key});
@@ -72,7 +73,13 @@ class TransactionsPage extends StatelessWidget {
                   final pos = context.read<PosProvider>();
                   try {
                     final savedPath = await saveInvoicePdfToDownloads(t, pos);
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم حفظ الفاتورة: $savedPath')));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('تم حفظ الفاتورة: $savedPath'),
+                      action: SnackBarAction(label: 'فتح', onPressed: () async {
+                        final ok = await FileUtils.openFile(savedPath);
+                        if (!ok && context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر فتح الملف على هذا النظام')));
+                      }),
+                    ));
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل التصدير: $e')));
                   }
