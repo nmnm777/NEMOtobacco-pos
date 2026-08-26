@@ -1,0 +1,34 @@
+# Flutter/Dart/Pub
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Android
+**/android/.gradle/
+**/android/app/*.iml
+**/local.properties
+
+# iOS
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Pods/
+**/ios/Runner.xcworkspace/
+**/ios/Podfile.lock
+
+# Visual Studio Code
+.vscode/
+
+# macOS
+**/macos/Flutter/ephemeral/
+
+# Windows
+**/windows/flutter/ephemeral/
+
+# JetBrains
+.idea/
+
+# Misc
+*.log
+*.lock
