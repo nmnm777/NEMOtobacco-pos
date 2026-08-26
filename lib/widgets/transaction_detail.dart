@@ -25,6 +25,18 @@ class TransactionDetailPage extends StatelessWidget {
               Navigator.of(context).push(MaterialPageRoute(builder: (_) => PdfPreviewPage(transaction: transaction)));
             },
           ),
+          IconButton(
+          icon: const Icon(Icons.save_alt),
+          onPressed: () async {
+            final posProv = context.read<PosProvider>();
+            try {
+              final savedPath = await saveInvoicePdfToDownloads(transaction, posProv);
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم حفظ الفاتورة: $savedPath')));
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل الحفظ: $e')));
+            }
+          },
+          ),
         ],
       ),
       body: Padding(
