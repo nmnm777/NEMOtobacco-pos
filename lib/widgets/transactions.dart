@@ -44,11 +44,33 @@ class TransactionsPage extends StatelessWidget {
           ],
         ),
         subtitle: Text('${t.date.toLocal()}'),
-        children: t.items.map((s) => ListTile(
-              title: Text('منتج: ${s.productId}', textDirection: TextDirection.ltr),
-              trailing: Text('x${s.qty}'),
-              subtitle: Text('\$${s.total.toStringAsFixed(2)}'),
-            )).toList(),
+        children: [
+          ...t.items.map((s) => ListTile(
+                title: Text('منتج: ${s.productId}', textDirection: TextDirection.ltr),
+                trailing: Text('x${s.qty}'),
+                subtitle: Text('\$${s.total.toStringAsFixed(2)}'),
+              )),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // open transaction detail page
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => TransactionDetailPage(transaction: t)));
+                  },
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text('عرض التفاصيل'),
+                ),
+                const SizedBox(width: 12),
+                OutlinedButton.icon(onPressed: () {
+                  // placeholder for export
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تصدير الفاتورة...')));
+                }, icon: const Icon(Icons.download), label: const Text('تصدير')),
+              ],
+            ),
+          )
+        ],
       ),
     );
   }

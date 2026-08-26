@@ -131,6 +131,15 @@ class PosProvider extends ChangeNotifier {
     return out;
   }
 
+  /// Return product model by id or null
+  Product? getProductById(String id) {
+    try {
+      return _products.firstWhere((p) => p.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
+
   List<Product> filteredProducts() {
     if (_selectedCategory == 'All') return products;
     return products.where((p) => p.category == _selectedCategory).toList(growable: false);
