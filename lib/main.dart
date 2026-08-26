@@ -9,6 +9,7 @@ import 'widgets/pos_layout.dart';
 import 'widgets/placeholder_panel.dart';
 import 'widgets/dashboard.dart';
 import 'widgets/transactions.dart';
+import 'widgets/settings_panel.dart';
 
 void main() {
   runApp(
@@ -222,7 +223,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case AppSection.users:
         return PlaceholderPanel(key: const ValueKey('users'), title: s.label, width: width, icon: s.icon);
       case AppSection.settings:
-        return PlaceholderPanel(key: const ValueKey('settings'), title: s.label, width: width, icon: s.icon);
+        return SettingsPanel();
     }
   }
 

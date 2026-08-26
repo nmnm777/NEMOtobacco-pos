@@ -239,6 +239,7 @@ class PosProvider extends ChangeNotifier {
         _products[productIndex] = Product(
           id: current.id,
           name: current.name,
+          nameAr: current.nameAr,
           category: current.category,
           price: current.price,
           barcode: current.barcode,
@@ -261,6 +262,47 @@ class PosProvider extends ChangeNotifier {
     // clear cart
     _cart.clear();
     notifyListeners();
+  }
+
+  /// Reset database to factory defaults: clears data and re-seeds products
+  Future<void> resetToDefaults() async {
+    try {
+      await DBHelper.clearAllData();
+      await SeedData.ensureSeeded();
+
+      // reload products and sales into memory
+      final dbProducts = await DBHelper.getProducts();
+      _products.clear();
+      for (final row in dbProducts) {
+        _products.add(Product.fromJson({
+          'id': row['id'],
+          'name': row['name'],
+          'name_ar': row['name_ar'],
+          'category': row['category'],
+          'price': row['price'],
+          'barcode': row['barcode'],
+          'stock': row['stock'],
+        }));
+      }
+
+      final dbSales = await DBHelper.getSales();
+      _sales.clear();
+      for (final row in dbSales) {
+        _sales.add(Sale(
+          id: row['id'] as int,
+          saleGroup: row['sale_group'] as String,
+          productId: row['productId'] as String,
+          qty: (row['qty'] as num).toInt(),
+          total: (row['total'] as num).toDouble(),
+          date: DateTime.parse(row['date'] as String),
+        ));
+      }
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('resetToDefaults error: $e');
+      rethrow;
+    }
   }
 
   // ---- Dashboard helpers ----

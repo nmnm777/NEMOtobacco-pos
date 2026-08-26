@@ -93,4 +93,12 @@ class DBHelper {
     final db = await database;
     return await db.query('sales', orderBy: 'date DESC');
   }
+
+  /// Remove all rows from products and sales tables. Used for resetting to factory defaults.
+  static Future<void> clearAllData() async {
+    final db = await database;
+    // delete sales first because they may reference products
+    await db.delete('sales');
+    await db.delete('products');
+  }
 }
