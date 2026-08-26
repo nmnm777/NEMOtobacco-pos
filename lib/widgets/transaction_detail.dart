@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:printing/printing.dart';
 import '../models/transaction.dart';
 import '../providers/pos_provider.dart';
+import '../services/pdf_service.dart';
 
 class TransactionDetailPage extends StatelessWidget {
   final TransactionSummary transaction;
@@ -18,9 +20,9 @@ class TransactionDetailPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.print),
-            onPressed: () {
-              // Placeholder for print/export functionality
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('طباعة... (ميزة تجريبية)')));
+            onPressed: () async {
+              // open pdf preview and allow printing
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => PdfPreviewPage(transaction: transaction)));
             },
           ),
         ],
@@ -80,6 +82,24 @@ class TransactionDetailPage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Simple page that shows PdfPreview using printing package
+class PdfPreviewPage extends StatelessWidget {
+  final TransactionSummary transaction;
+  const PdfPreviewPage({super.key, required this.transaction});
+
+  @override
+  Widget build(BuildContext context) {
+    final pos = context.read<PosProvider>();
+    return Scaffold(
+      appBar: AppBar(title: const Text('معاينة الفاتورة')),
+      body: PdfPreview(
+        maxPageWidth: 700,
+        build: (format) async => await generateInvoicePdf(transaction, pos),
       ),
     );
   }
