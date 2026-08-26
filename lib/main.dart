@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildTopBar(double width, bool showMenuButton) {
+  PreferredSizeWidget _buildTopBar(double width, bool showMenuButton) {
     return AppBar(
       title: Text('Tobacco POS — ${_selected.label}'),
       centerTitle: false,

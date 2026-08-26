@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/pos_provider.dart';
 import '../models/transaction.dart';
+import 'transaction_detail.dart';
 
 class TransactionsPage extends StatelessWidget {
   const TransactionsPage({super.key});
