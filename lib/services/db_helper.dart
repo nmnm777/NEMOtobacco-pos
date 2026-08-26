@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DBHelper {
   static Database? _db;
@@ -100,5 +102,31 @@ class DBHelper {
     // delete sales first because they may reference products
     await db.delete('sales');
     await db.delete('products');
+  }
+
+  /// Return the full path to the sqlite database file.
+  static Future<String> getDatabasePath() async {
+    final databasesPath = await getDatabasesPath();
+    return join(databasesPath, 'tobacco_pos.db');
+  }
+
+  /// Export the sqlite database file to the user's Downloads folder and return the destination path.
+  static Future<String> exportDatabaseToDownloads() async {
+    final dbPath = await getDatabasePath();
+    final src = File(dbPath);
+    if (!await src.exists()) throw Exception('Database file not found at $dbPath');
+
+    Directory? downloadsDir;
+    try {
+      downloadsDir = await getDownloadsDirectory();
+    } catch (e) {
+      downloadsDir = null;
+    }
+
+    final baseDir = downloadsDir ?? await getApplicationDocumentsDirectory();
+    final destPath = join(baseDir.path, 'tobacco_pos_backup_${DateTime.now().millisecondsSinceEpoch}.db');
+    final dest = File(destPath);
+    await src.copy(dest.path);
+    return dest.path;
   }
 }

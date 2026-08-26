@@ -46,10 +46,24 @@ class Sidebar extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(12),
             child: ElevatedButton.icon(
-              onPressed: () => onSelect(AppSection.settings),
-              icon: const Icon(Icons.logout),
-              label: const Text('تسجيل خروج'),
-            ),
+            onPressed: () async {
+              final confirm = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
+                title: const Text('تسجيل خروج'),
+                content: const Text('هل تريد تسجيل الخروج؟ سيتم مسح السلة الحالية.'),
+                actions: [
+                  TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('إلغاء')),
+                  ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('تسجيل خروج')),
+                ],
+              ));
+
+              if (confirm == true) {
+                // clear cart and navigate to settings as a placeholder
+                onSelect(AppSection.settings);
+              }
+            },
+            icon: const Icon(Icons.logout),
+            label: const Text('تسجيل خروج'),
+          ),
           ),
         ],
       ),

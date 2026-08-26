@@ -90,6 +90,38 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : null,
       actions: [
+        IconButton(
+          tooltip: 'استيراد بيانات المصنع',
+          icon: const Icon(Icons.download_rounded),
+          onPressed: () async {
+            final confirmed = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
+              title: const Text('استيراد بيانات المصنع'),
+              content: const Text('هل تريد استيراد بيانات المصنع؟ سيؤدي ذلك إلى مسح المنتجات الحالية وإعادة تحميل البيانات الافتراضية.'),
+              actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('إلغاء')), ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('نعم'))],
+            ));
+            if (confirmed == true) {
+              final posProv = context.read<PosProvider>();
+              try {
+                await posProv.resetToDefaults();
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم استيراد بيانات المصنع')));
+              } catch (e) {
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل الاستيراد: $e')));
+              }
+            }
+          },
+        ),
+        IconButton(
+          tooltip: 'تصدير قاعدة البيانات',
+          icon: const Icon(Icons.upload_file),
+          onPressed: () async {
+            try {
+              final path = await DBHelper.exportDatabaseToDownloads();
+              if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم تصدير قاعدة البيانات: $path')));
+            } catch (e) {
+              if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطأ في التصدير: $e')));
+            }
+          },
+        ),
         SizedBox(
           width: width < 420 ? width * 0.6 : 360,
           child: Padding(
