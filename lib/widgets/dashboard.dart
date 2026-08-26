@@ -57,7 +57,7 @@ class Dashboard extends StatelessWidget {
                     ...lowStock.map((p) => ListTile(
                                               tileColor: Theme.of(context).colorScheme.surfaceVariant,
                                               hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.06),
-                                              title: Text(p.name, textDirection: TextDirection.ltr),
+                                              title: Text(p.displayName, textDirection: TextDirection.ltr),
                                               trailing: Text('مخزون: ${p.stock}'),
                                             ))
                 ],

@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 import 'dart:io';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:path/path.dart' as p;
@@ -12,18 +11,9 @@ import '../providers/pos_provider.dart';
 Future<Uint8List> generateInvoicePdf(TransactionSummary tx, PosProvider pos) async {
   final doc = pw.Document();
 
-  // load Arabic font (Amiri) from assets; fallback to default if not found
-  pw.Font? arabicFont;
-  try {
-    final fontData = await rootBundle.load('assets/fonts/Amiri-Regular.ttf');
-    arabicFont = pw.Font.ttf(fontData);
-  } catch (e) {
-    // font not available; arabic may not render properly
-    arabicFont = null;
-  }
-
-  final baseStyle = arabicFont != null ? pw.TextStyle(font: arabicFont, fontSize: 12) : pw.TextStyle(fontSize: 12);
-  final boldStyle = arabicFont != null ? pw.TextStyle(font: arabicFont, fontSize: 12, fontWeight: pw.FontWeight.bold) : pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold);
+  // Use default font (no external font bundled)
+  final baseStyle = pw.TextStyle(fontSize: 12);
+  final boldStyle = pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold);
 
   final header = pw.Row(
     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -31,7 +21,7 @@ Future<Uint8List> generateInvoicePdf(TransactionSummary tx, PosProvider pos) asy
       pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text('Tobacco POS', style: pw.TextStyle(font: arabicFont, fontSize: 18, fontWeight: pw.FontWeight.bold)),
+          pw.Text('Tobacco POS', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 6),
           pw.Text('فاتورة رقم: ${tx.saleGroup}', style: baseStyle),
         ],
@@ -51,7 +41,7 @@ Future<Uint8List> generateInvoicePdf(TransactionSummary tx, PosProvider pos) asy
   // table data rows
   final List<List<String>> rows = tx.items.map((s) {
     final product = pos.getProductById(s.productId);
-    final name = product?.name ?? s.productId;
+    final name = product?.displayName ?? s.productId;
     final unitPrice = s.qty != 0 ? (s.total / s.qty) : s.total;
     return [name, '${s.qty}', '\$${unitPrice.toStringAsFixed(2)}', '\$${s.total.toStringAsFixed(2)}'];
   }).toList();
@@ -79,7 +69,7 @@ Future<Uint8List> generateInvoicePdf(TransactionSummary tx, PosProvider pos) asy
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
-              pw.Text('الإجمالي: \$${tx.total.toStringAsFixed(2)}', style: pw.TextStyle(font: arabicFont, fontSize: 16, fontWeight: pw.FontWeight.bold)),
+              pw.Text('الإجمالي: \$${tx.total.toStringAsFixed(2)}', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
             ],
           ),
         ],

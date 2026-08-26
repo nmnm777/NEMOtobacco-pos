@@ -107,7 +107,7 @@ class PosLayout extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Text(p.name, style: const TextStyle(fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
+                          Text(p.displayName, style: const TextStyle(fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
                           const SizedBox(height: 4),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -162,7 +162,7 @@ class PosLayout extends StatelessWidget {
                           hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.06),
                           contentPadding: EdgeInsets.zero,
                           leading: CircleAvatar(child: Text('${ci.qty}x')),
-                          title: Text(ci.product.name, textDirection: TextDirection.ltr),
+                          title: Text(ci.product.displayName, textDirection: TextDirection.ltr),
                           subtitle: Text('\$${ci.product.price.toStringAsFixed(2)} لكل وحدة'),
                           trailing: SizedBox(
                             width: 112,

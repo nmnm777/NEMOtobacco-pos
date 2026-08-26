@@ -61,7 +61,7 @@ class TransactionDetailPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: transaction.items.map((s) {
                     final product = pos.getProductById(s.productId);
-                    final name = product?.name ?? s.productId;
+                    final name = product?.displayName ?? s.productId;
                     final unitPrice = s.qty != 0 ? s.total / s.qty : s.total;
                     return ListTile(
                       tileColor: Theme.of(context).colorScheme.surfaceVariant,

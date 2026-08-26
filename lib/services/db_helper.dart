@@ -15,12 +15,13 @@ class DBHelper {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, 'tobacco_pos.db');
 
-    return await openDatabase(path, version: 1, onCreate: (db, version) async {
-      // products table
+    return await openDatabase(path, version: 2, onCreate: (db, version) async {
+      // products table with optional Arabic name
       await db.execute('''
         CREATE TABLE products(
           id TEXT PRIMARY KEY,
           name TEXT,
+          name_ar TEXT,
           category TEXT,
           price REAL,
           barcode TEXT,
@@ -39,6 +40,14 @@ class DBHelper {
           date TEXT
         )
       ''');
+    }, onUpgrade: (db, oldVersion, newVersion) async {
+      if (oldVersion < 2) {
+        try {
+          await db.execute('ALTER TABLE products ADD COLUMN name_ar TEXT');
+        } catch (e) {
+          // ignore - column may already exist
+        }
+      }
     });
   }
 

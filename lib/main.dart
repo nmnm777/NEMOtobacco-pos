@@ -69,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final found = pos.findByBarcode(code);
     if (found != null) {
       pos.addToCart(found);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تمت إضافة "${found.name}" إلى السلة')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تمت إضافة "${found.displayName}" إلى السلة')));
       _barcodeController.clear();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لا يوجد منتج مطابق للباركود')));
