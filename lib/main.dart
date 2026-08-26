@@ -7,6 +7,7 @@ import 'providers/pos_provider.dart';
 import 'widgets/sidebar.dart';
 import 'widgets/pos_layout.dart';
 import 'widgets/placeholder_panel.dart';
+import 'widgets/dashboard.dart';
 
 void main() {
   runApp(
@@ -201,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
           processBarcode: _processBarcode,
         );
       case AppSection.dashboard:
-        return PlaceholderPanel(key: const ValueKey('dashboard'), title: s.label, width: width, icon: s.icon);
+              return const Directionality(textDirection: TextDirection.rtl, child: Dashboard());
       case AppSection.inventory:
         return PlaceholderPanel(key: const ValueKey('inventory'), title: s.label, width: width, icon: s.icon);
       case AppSection.expensesDebts:

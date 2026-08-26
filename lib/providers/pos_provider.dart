@@ -1,26 +1,55 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import '../models/product.dart';
 import '../models/cart_item.dart';
+import '../models/sale.dart';
 
 class PosProvider extends ChangeNotifier {
-  // initial demo products - in future load from JSON or API
-  final List<Product> _products = [
-    Product(id: 'p1', name: 'Classic Cigarette Pack', category: 'Cigarettes', price: 5.0, barcode: '10001'),
-    Product(id: 'p2', name: 'Premium Cigarette Pack', category: 'Cigarettes', price: 7.5, barcode: '10002'),
-    Product(id: 'p3', name: 'Shisha Mix 50g', category: 'Shisha / Molasses', price: 12.0, barcode: '20001'),
-    Product(id: 'p4', name: 'Hookah Coals (box)', category: 'Shisha / Molasses', price: 4.0, barcode: '20002'),
-    Product(id: 'p5', name: 'Vape Pod', category: 'Vapes', price: 15.0, barcode: '30001'),
-    Product(id: 'p6', name: 'Vape Liquid 30ml', category: 'Vapes', price: 9.99, barcode: '30002'),
-    Product(id: 'p7', name: 'Lighter', category: 'Accessories', price: 1.5, barcode: '40001'),
-    Product(id: 'p8', name: 'Rolling Papers', category: 'Accessories', price: 2.0, barcode: '40002'),
-  ];
+  final List<Product> _products = [];
+  final List<Sale> _sales = [];
 
   String _selectedCategory = 'All';
   final Map<String, CartItem> _cart = {};
 
+  PosProvider() {
+    // load assets on construction
+    _loadProductsFromAssets();
+    _loadSalesFromAssets();
+  }
+
+  Future<void> _loadProductsFromAssets() async {
+    try {
+      final raw = await rootBundle.loadString('assets/products.json');
+      final List<dynamic> data = json.decode(raw) as List<dynamic>;
+      _products.clear();
+      for (final e in data) {
+        _products.add(Product.fromJson(e as Map<String, dynamic>));
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to load products.json: $e');
+    }
+  }
+
+  Future<void> _loadSalesFromAssets() async {
+    try {
+      final raw = await rootBundle.loadString('assets/sales.json');
+      final List<dynamic> data = json.decode(raw) as List<dynamic>;
+      _sales.clear();
+      for (final e in data) {
+        _sales.add(Sale.fromJson(e as Map<String, dynamic>));
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to load sales.json: $e');
+    }
+  }
+
   List<Product> get products => List.unmodifiable(_products);
   String get selectedCategory => _selectedCategory;
   Map<String, CartItem> get cart => _cart;
+  List<Sale> get sales => List.unmodifiable(_sales);
 
   List<Product> filteredProducts() {
     if (_selectedCategory == 'All') return products;
@@ -64,6 +93,21 @@ class PosProvider extends ChangeNotifier {
     _cart.clear();
     notifyListeners();
   }
+
+  // ---- Dashboard helpers ----
+  int get totalProducts => _products.length;
+
+  int get totalCategories => _products.map((p) => p.category).toSet().length;
+
+  double get salesTotal => _sales.fold(0.0, (s, it) => s + it.total);
+
+  int get ordersCount => _sales.length;
+
+  List<Product> get lowStockProducts => _products.where((p) => p.stock <= 50).toList(growable: false);
+
+  // get sales in a date range
+  List<Sale> salesBetween(DateTime start, DateTime end) =>
+      _sales.where((s) => s.date.isAfter(start) && s.date.isBefore(end)).toList(growable: false);
 }
 
 // small extension locally to avoid collection package dependency

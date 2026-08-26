@@ -1,0 +1,10 @@
+[
+  { "id": "p1", "name": "Classic Cigarette Pack", "category": "Cigarettes", "price": 5.0, "barcode": "10001", "stock": 120 },
+  { "id": "p2", "name": "Premium Cigarette Pack", "category": "Cigarettes", "price": 7.5, "barcode": "10002", "stock": 80 },
+  { "id": "p3", "name": "Shisha Mix 50g", "category": "Shisha / Molasses", "price": 12.0, "barcode": "20001", "stock": 45 },
+  { "id": "p4", "name": "Hookah Coals (box)", "category": "Shisha / Molasses", "price": 4.0, "barcode": "20002", "stock": 200 },
+  { "id": "p5", "name": "Vape Pod", "category": "Vapes", "price": 15.0, "barcode": "30001", "stock": 30 },
+  { "id": "p6", "name": "Vape Liquid 30ml", "category": "Vapes", "price": 9.99, "barcode": "30002", "stock": 60 },
+  { "id": "p7", "name": "Lighter", "category": "Accessories", "price": 1.5, "barcode": "40001", "stock": 300 },
+  { "id": "p8", "name": "Rolling Papers", "category": "Accessories", "price": 2.0, "barcode": "40002", "stock": 150 }
+]
