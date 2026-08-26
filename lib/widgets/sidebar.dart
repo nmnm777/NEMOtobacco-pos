@@ -30,6 +30,8 @@ class Sidebar extends StatelessWidget {
               children: AppSection.values.map((s) {
                 final isSelected = s == selected;
                 return ListTile(
+                  tileColor: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.08) : null,
+                  hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.06),
                   leading: Icon(s.icon, color: isSelected ? Colors.teal : null),
                   title: Text(s.label, textDirection: TextDirection.rtl),
                   selected: isSelected,

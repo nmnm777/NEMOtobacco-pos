@@ -55,9 +55,11 @@ class Dashboard extends StatelessWidget {
                     )
                   else
                     ...lowStock.map((p) => ListTile(
-                          title: Text(p.name, textDirection: TextDirection.ltr),
-                          trailing: Text('مخزون: ${p.stock}'),
-                        ))
+                                              tileColor: Theme.of(context).colorScheme.surfaceVariant,
+                                              hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.06),
+                                              title: Text(p.name, textDirection: TextDirection.ltr),
+                                              trailing: Text('مخزون: ${p.stock}'),
+                                            ))
                 ],
               ),
             ),
@@ -77,11 +79,13 @@ class Dashboard extends StatelessWidget {
                     return Column(
                       children: sales.reversed.take(6).map((s) => ListTile(
                             dense: true,
-                            title: Text('منتج: ${s.productId}', textDirection: TextDirection.ltr),
-                            trailing: Text('\$${s.total.toStringAsFixed(2)}'),
-                            subtitle: Text('${s.qty} وحدة — ${s.date.toLocal()}'),
-                          )).toList(),
-                    );
+                                                tileColor: Theme.of(context).colorScheme.surfaceVariant,
+                                                hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.06),
+                                                title: Text('منتج: ${s.productId}', textDirection: TextDirection.ltr),
+                                                trailing: Text('\$${s.total.toStringAsFixed(2)}'),
+                                                subtitle: Text('${s.qty} وحدة — ${s.date.toLocal()}'),
+                                              )).toList(),
+                                        );
                   })
                 ],
               ),

@@ -64,6 +64,8 @@ class TransactionDetailPage extends StatelessWidget {
                     final name = product?.name ?? s.productId;
                     final unitPrice = s.qty != 0 ? s.total / s.qty : s.total;
                     return ListTile(
+                      tileColor: Theme.of(context).colorScheme.surfaceVariant,
+                      hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.06),
                       title: Text(name, textDirection: TextDirection.ltr),
                       subtitle: Text('السعر للوحدة: \$${unitPrice.toStringAsFixed(2)}'),
                       trailing: Column(

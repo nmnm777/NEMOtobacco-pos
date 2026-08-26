@@ -158,6 +158,8 @@ class PosLayout extends StatelessWidget {
                       itemBuilder: (context, idx) {
                         final ci = items[idx];
                         return ListTile(
+                          tileColor: Theme.of(context).colorScheme.surfaceVariant,
+                          hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.06),
                           contentPadding: EdgeInsets.zero,
                           leading: CircleAvatar(child: Text('${ci.qty}x')),
                           title: Text(ci.product.name, textDirection: TextDirection.ltr),

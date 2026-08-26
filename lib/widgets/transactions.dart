@@ -47,10 +47,13 @@ class TransactionsPage extends StatelessWidget {
         subtitle: Text('${t.date.toLocal()}'),
         children: [
           ...t.items.map((s) => ListTile(
-                title: Text('منتج: ${s.productId}', textDirection: TextDirection.ltr),
-                trailing: Text('x${s.qty}'),
-                subtitle: Text('\$${s.total.toStringAsFixed(2)}'),
-              )),
+                          tileColor: Theme.of(context).colorScheme.surfaceVariant,
+                          hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.06),
+                          title: Text('منتج: ${s.productId}', textDirection: TextDirection.ltr),
+                          trailing: Text('x${s.qty}'),
+                          subtitle: Text('\$${s.total.toStringAsFixed(2)}'),
+                        )),
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
