@@ -1,10 +1,32 @@
 [
-  { "id": "p1", "name": "Classic Cigarette Pack", "category": "Cigarettes", "price": 5.0, "barcode": "10001", "stock": 120 },
-  { "id": "p2", "name": "Premium Cigarette Pack", "category": "Cigarettes", "price": 7.5, "barcode": "10002", "stock": 80 },
-  { "id": "p3", "name": "Shisha Mix 50g", "category": "Shisha / Molasses", "price": 12.0, "barcode": "20001", "stock": 45 },
-  { "id": "p4", "name": "Hookah Coals (box)", "category": "Shisha / Molasses", "price": 4.0, "barcode": "20002", "stock": 200 },
-  { "id": "p5", "name": "Vape Pod", "category": "Vapes", "price": 15.0, "barcode": "30001", "stock": 30 },
-  { "id": "p6", "name": "Vape Liquid 30ml", "category": "Vapes", "price": 9.99, "barcode": "30002", "stock": 60 },
-  { "id": "p7", "name": "Lighter", "category": "Accessories", "price": 1.5, "barcode": "40001", "stock": 300 },
-  { "id": "p8", "name": "Rolling Papers", "category": "Accessories", "price": 2.0, "barcode": "40002", "stock": 150 }
+  { "id": "p1", "name": "Classic Cigarette Pack - 20", "category": "Cigarettes", "price": 5.00, "barcode": "10001", "stock": 120 },
+  { "id": "p2", "name": "Premium Cigarette Pack - 20", "category": "Cigarettes", "price": 7.50, "barcode": "10002", "stock": 80 },
+  { "id": "p3", "name": "Marlboro Red Pack - 20", "category": "Cigarettes", "price": 6.50, "barcode": "10003", "stock": 200 },
+  { "id": "p4", "name": "Marlboro Gold Pack - 20", "category": "Cigarettes", "price": 6.75, "barcode": "10004", "stock": 160 },
+  { "id": "p5", "name": "Local Brand Cigarettes Pack - 20", "category": "Cigarettes", "price": 3.75, "barcode": "10005", "stock": 340 },
+
+  { "id": "p6", "name": "Shisha Tobacco - Apple 250g", "category": "Shisha / Molasses", "price": 18.00, "barcode": "20001", "stock": 45 },
+  { "id": "p7", "name": "Shisha Tobacco - Double Apple 50g", "category": "Shisha / Molasses", "price": 6.50, "barcode": "20002", "stock": 120 },
+  { "id": "p8", "name": "Hookah Coals - Quick Light (box of 10)", "category": "Shisha / Molasses", "price": 4.00, "barcode": "20003", "stock": 200 },
+  { "id": "p9", "name": "Charcoal Burner", "category": "Shisha / Molasses", "price": 25.00, "barcode": "20004", "stock": 18 },
+
+  { "id": "p10", "name": "Disposable Vape - 600 Puffs", "category": "Vapes", "price": 12.00, "barcode": "30001", "stock": 75 },
+  { "id": "p11", "name": "Vape Pod Device", "category": "Vapes", "price": 35.00, "barcode": "30002", "stock": 30 },
+  { "id": "p12", "name": "E-Liquid 30ml - Tobacco", "category": "Vapes", "price": 9.99, "barcode": "30003", "stock": 60 },
+  { "id": "p13", "name": "Vape Coils (pack of 3)", "category": "Vapes", "price": 8.50, "barcode": "30004", "stock": 90 },
+
+  { "id": "p14", "name": "Lighter - Disposable", "category": "Accessories", "price": 1.50, "barcode": "40001", "stock": 300 },
+  { "id": "p15", "name": "Butane Refill Canister", "category": "Accessories", "price": 3.50, "barcode": "40002", "stock": 75 },
+  { "id": "p16", "name": "Rolling Papers - Slim", "category": "Accessories", "price": 2.00, "barcode": "40003", "stock": 150 },
+  { "id": "p17", "name": "Rolling Machine", "category": "Accessories", "price": 6.00, "barcode": "40004", "stock": 40 },
+  { "id": "p18", "name": "Cigar - Maduro", "category": "Accessories", "price": 10.00, "barcode": "40005", "stock": 25 },
+
+  { "id": "p19", "name": "Matches - Box", "category": "Accessories", "price": 0.75, "barcode": "40006", "stock": 500 },
+  { "id": "p20", "name": "Filter Tips (pack of 50)", "category": "Accessories", "price": 1.20, "barcode": "40007", "stock": 220 },
+
+  { "id": "p21", "name": "Nicotine Pouches - Mint", "category": "Accessories", "price": 4.50, "barcode": "40008", "stock": 90 },
+
+  { "id": "p22", "name": "Shisha Hose Replacement", "category": "Accessories", "price": 7.00, "barcode": "40009", "stock": 60 },
+
+  { "id": "p23", "name": "Cigarette Case - Metal", "category": "Accessories", "price": 12.00, "barcode": "40010", "stock": 34 }
 ]
