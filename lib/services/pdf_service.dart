@@ -12,11 +12,23 @@ import '../providers/pos_provider.dart';
 Future<Uint8List> generateInvoicePdf(TransactionSummary tx, PosProvider pos) async {
   final doc = pw.Document();
 
-  // try load Arabic font from assets; fallback to default
+  // try load Arabic font from assets; try Cairo then Amiri; fallback to default
   pw.Font? arabicFont;
   try {
-    final fontData = await rootBundle.load('assets/fonts/Cairo-Regular.ttf');
-    arabicFont = pw.Font.ttf(fontData);
+    ByteData? fontData;
+    try {
+      fontData = await rootBundle.load('assets/fonts/Cairo-Regular.ttf');
+    } catch (_) {
+      // ignore
+    }
+    if (fontData == null) {
+      try {
+        fontData = await rootBundle.load('assets/fonts/Amiri-Regular.ttf');
+      } catch (_) {
+        // ignore
+      }
+    }
+    if (fontData != null) arabicFont = pw.Font.ttf(fontData);
   } catch (e) {
     // font not available; arabic may not render properly
     arabicFont = null;
