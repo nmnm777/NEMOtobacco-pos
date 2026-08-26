@@ -8,6 +8,7 @@ import 'widgets/sidebar.dart';
 import 'widgets/pos_layout.dart';
 import 'widgets/placeholder_panel.dart';
 import 'widgets/dashboard.dart';
+import 'widgets/transactions.dart';
 
 void main() {
   runApp(
@@ -213,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case AppSection.expensesDebts:
         return PlaceholderPanel(key: const ValueKey('expenses'), title: s.label, width: width, icon: s.icon);
       case AppSection.salesReports:
-        return PlaceholderPanel(key: const ValueKey('sales'), title: s.label, width: width, icon: s.icon);
+              return const Directionality(textDirection: TextDirection.rtl, child: TransactionsPage());
       case AppSection.users:
         return PlaceholderPanel(key: const ValueKey('users'), title: s.label, width: width, icon: s.icon);
       case AppSection.settings:

@@ -4,6 +4,8 @@ import 'package:flutter/services.dart' show rootBundle;
 import '../models/product.dart';
 import '../models/cart_item.dart';
 import '../models/sale.dart';
+import '../models/transaction.dart';
+import '../services/db_helper.dart';
 
 class PosProvider extends ChangeNotifier {
   final List<Product> _products = [];
@@ -112,6 +114,23 @@ class PosProvider extends ChangeNotifier {
   Map<String, CartItem> get cart => _cart;
   List<Sale> get sales => List.unmodifiable(_sales);
 
+  /// Group sales by saleGroup into TransactionSummary objects
+  List<TransactionSummary> getTransactions() {
+    final Map<String, List<Sale>> groups = {};
+    for (final s in _sales) {
+      groups.putIfAbsent(s.saleGroup, () => []).add(s);
+    }
+    final List<TransactionSummary> out = [];
+    groups.forEach((group, items) {
+      final total = items.fold(0.0, (t, it) => t + it.total);
+      final date = items.isNotEmpty ? items.first.date : DateTime.now();
+      out.add(TransactionSummary(saleGroup: group, date: date, total: total, items: items));
+    });
+    // sort by date desc
+    out.sort((a, b) => b.date.compareTo(a.date));
+    return out;
+  }
+
   List<Product> filteredProducts() {
     if (_selectedCategory == 'All') return products;
     return products.where((p) => p.category == _selectedCategory).toList(growable: false);
@@ -156,8 +175,23 @@ class PosProvider extends ChangeNotifier {
   }
 
   /// Perform checkout: persist sales, update product stocks, clear cart
+  /// Check whether cart items are available in stock.
+  /// Returns a map productId -> shortageAmount (positive) for items that exceed stock.
+  Map<String, int> checkCartAvailability() {
+    final shortages = <String, int>{};
+    for (final ci in _cart.values) {
+      final product = _products.firstWhere((p) => p.id == ci.product.id);
+      if (ci.qty > product.stock) {
+        shortages[product.id] = ci.qty - product.stock;
+      }
+    }
+    return shortages;
+  }
+
   Future<void> checkout() async {
     if (_cart.isEmpty) return;
+
+    // assume caller checked availability
     final saleGroup = DateTime.now().millisecondsSinceEpoch.toString();
 
     // prepare items and update stocks
