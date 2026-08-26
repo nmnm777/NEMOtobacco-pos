@@ -13,6 +13,7 @@ class PosLayout extends StatelessWidget {
   final double Function() totalPriceGetter;
   final TextEditingController barcodeController;
   final void Function(String) processBarcode;
+  final VoidCallback onCheckout;
 
   const PosLayout({
     super.key,
@@ -26,6 +27,7 @@ class PosLayout extends StatelessWidget {
     required this.totalPriceGetter,
     required this.barcodeController,
     required this.processBarcode,
+    required this.onCheckout,
   });
 
   List<String> get categories {
@@ -197,7 +199,7 @@ class PosLayout extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: ElevatedButton.icon(icon: const Icon(Icons.payment), label: const Text('الدفع'), onPressed: cart.isEmpty ? null : () {}),
+                  child: ElevatedButton.icon(icon: const Icon(Icons.payment), label: const Text('الدفع'), onPressed: cart.isEmpty ? null : onCheckout),
                 ),
               ],
             )

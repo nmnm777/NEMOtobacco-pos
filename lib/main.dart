@@ -200,6 +200,11 @@ class _HomeScreenState extends State<HomeScreen> {
           totalPriceGetter: () => pos.totalPrice,
           barcodeController: _barcodeController,
           processBarcode: _processBarcode,
+          onCheckout: () async {
+            // perform checkout and show confirmation
+            await pos.checkout();
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ الفاتورة وتحديث المخزون')));
+          },
         );
       case AppSection.dashboard:
               return const Directionality(textDirection: TextDirection.rtl, child: Dashboard());

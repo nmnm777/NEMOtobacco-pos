@@ -1,14 +1,16 @@
 class Sale {
-  final String id;
+  final int? id; // DB autoincrement id
+  final String saleGroup;
   final String productId;
   final int qty;
   final double total;
   final DateTime date;
 
-  Sale({required this.id, required this.productId, required this.qty, required this.total, required this.date});
+  Sale({this.id, required this.saleGroup, required this.productId, required this.qty, required this.total, required this.date});
 
   factory Sale.fromJson(Map<String, dynamic> json) => Sale(
-        id: json['id'] as String,
+        id: json['id'] as int?,
+        saleGroup: json['sale_group'] as String? ?? json['saleGroup'] as String? ?? '',
         productId: json['productId'] as String,
         qty: (json['qty'] as num).toInt(),
         total: (json['total'] as num).toDouble(),
@@ -16,7 +18,8 @@ class Sale {
       );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
+        if (id != null) 'id': id,
+        'sale_group': saleGroup,
         'productId': productId,
         'qty': qty,
         'total': total,
