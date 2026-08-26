@@ -6,6 +6,7 @@ import '../models/cart_item.dart';
 import '../models/sale.dart';
 import '../models/transaction.dart';
 import '../services/db_helper.dart';
+import '../services/seed_data.dart';
 
 class PosProvider extends ChangeNotifier {
   final List<Product> _products = [];
@@ -23,13 +24,32 @@ class PosProvider extends ChangeNotifier {
     try {
       // ensure DB is initialized
       await DBHelper.database;
-      // load products from DB; if empty load from assets and insert
+      // ensure DB seeded with initial products from assets when empty
       final dbProducts = await DBHelper.getProducts();
       if (dbProducts.isEmpty) {
-        await _loadProductsFromAssets();
-        // persist to DB
-        final batch = _products.map((p) => p.toJson()).toList();
-        await DBHelper.insertProductsBatch(batch);
+        // use centralized seed helper to populate DB
+        try {
+          await SeedData.ensureSeeded();
+        } catch (e) {
+          debugPrint('SeedData failed: $e');
+          // fallback to the previous approach
+          await _loadProductsFromAssets();
+          final batch = _products.map((p) => p.toJson()).toList();
+          await DBHelper.insertProductsBatch(batch);
+        }
+        // re-read from DB after seeding
+        final refreshed = await DBHelper.getProducts();
+        _products.clear();
+        for (final row in refreshed) {
+          _products.add(Product.fromJson({
+            'id': row['id'],
+            'name': row['name'],
+            'category': row['category'],
+            'price': row['price'],
+            'barcode': row['barcode'],
+            'stock': row['stock'],
+          }));
+        }
       } else {
         _products.clear();
         for (final row in dbProducts) {
