@@ -1,44 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'models/app_section.dart';
-import 'models/product.dart';
-import 'models/cart_item.dart';
 import 'providers/pos_provider.dart';
-import 'widgets/sidebar.dart';
-import 'widgets/pos_layout.dart';
-import 'widgets/placeholder_panel.dart';
+import 'services/db_helper.dart';
+import 'services/file_utils.dart';
 import 'widgets/dashboard.dart';
-import 'widgets/transactions.dart';
+import 'widgets/inventory_panel.dart';
+import 'widgets/placeholder_panel.dart';
+import 'widgets/pos_layout.dart';
 import 'widgets/settings_panel.dart';
+import 'widgets/sidebar.dart';
+import 'widgets/transactions.dart';
 
 void main() {
   runApp(
     ChangeNotifierProvider(
       create: (_) => PosProvider(),
-      child: const TobaccoPosApp(),
+      child: const MyApp(),
     ),
   );
 }
 
-class TobaccoPosApp extends StatelessWidget {
-  const TobaccoPosApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Tobacco POS',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.teal,
         useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0F766E)),
+        cardTheme: CardTheme(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          margin: const EdgeInsets.all(0),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF3F7F9),
       ),
-      // Force RTL across the app for Arabic professional layout
       builder: (context, child) {
-        return Directionality(textDirection: TextDirection.rtl, child: child ?? const SizedBox());
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFF3F7F9), Color(0xFFE7F5F3)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+            child: child ?? const SizedBox(),
+          ),
+        );
       },
       home: const HomeScreen(),
-      debugShowCheckedModeBanner: false,
     );
   }
+}
+
+class TobaccoPosApp extends MyApp {
+  const TobaccoPosApp({super.key});
 }
 
 class HomeScreen extends StatefulWidget {
@@ -50,7 +77,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   AppSection _selected = AppSection.cashier;
-
   final TextEditingController _barcodeController = TextEditingController();
 
   @override
@@ -60,9 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _selectSection(AppSection s) {
-    setState(() {
-      _selected = s;
-    });
+    setState(() => _selected = s);
   }
 
   void _processBarcode(String code) {
@@ -70,21 +94,28 @@ class _HomeScreenState extends State<HomeScreen> {
     final found = pos.findByBarcode(code);
     if (found != null) {
       pos.addToCart(found);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تمت إضافة "${found.displayName}" إلى السلة')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('تمت إضافة "${found.displayName}" إلى السلة')),
+      );
       _barcodeController.clear();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لا يوجد منتج مطابق للباركود')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لا يوجد منتج مطابق للباركود')),
+      );
     }
   }
 
   PreferredSizeWidget _buildTopBar(double width, bool showMenuButton) {
     return AppBar(
-      title: Text('Tobacco POS — ${_selected.label}'),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      title: Text('Tobacco POS — ${_selected.label}', style: const TextStyle(fontWeight: FontWeight.bold)),
       centerTitle: false,
       leading: showMenuButton
           ? Builder(
               builder: (ctx) => IconButton(
-                icon: const Icon(Icons.menu),
+                icon: const Icon(Icons.menu_rounded),
                 onPressed: () => Scaffold.of(ctx).openDrawer(),
               ),
             )
@@ -94,40 +125,60 @@ class _HomeScreenState extends State<HomeScreen> {
           tooltip: 'استيراد بيانات المصنع',
           icon: const Icon(Icons.download_rounded),
           onPressed: () async {
-            final confirmed = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-              title: const Text('استيراد بيانات المصنع'),
-              content: const Text('هل تريد استيراد بيانات المصنع؟ سيؤدي ذلك إلى مسح المنتجات الحالية وإعادة تحميل البيانات الافتراضية.'),
-              actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('إلغاء')), ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('نعم'))],
-            ));
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('استيراد بيانات المصنع'),
+                content: const Text('هل تريد استيراد بيانات المصنع؟ سيؤدي ذلك إلى مسح المنتجات الحالية وإعادة تحميل البيانات الافتراضية.'),
+                actions: [
+                  TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('إلغاء')),
+                  ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('نعم')),
+                ],
+              ),
+            );
             if (confirmed == true) {
               final posProv = context.read<PosProvider>();
               try {
                 await posProv.resetToDefaults();
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم استيراد بيانات المصنع')));
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم استيراد بيانات المصنع')));
+                }
               } catch (e) {
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل الاستيراد: $e')));
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل الاستيراد: $e')));
+                }
               }
             }
           },
         ),
         IconButton(
           tooltip: 'تصدير قاعدة البيانات',
-          icon: const Icon(Icons.upload_file),
+          icon: const Icon(Icons.upload_file_rounded),
           onPressed: () async {
             try {
               final path = await DBHelper.exportDatabaseToDownloads();
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text('تم تصدير قاعدة البيانات: $path'),
-                  action: SnackBarAction(label: 'فتح', onPressed: () async {
-                    // try to open the exported file
-                    final ok = await FileUtils.openFile(path);
-                    if (!ok && context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر فتح الملف على هذا النظام')));
-                  }),
-                ));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('تم تصدير قاعدة البيانات: $path'),
+                    action: SnackBarAction(
+                      label: 'فتح',
+                      onPressed: () async {
+                        final ok = await FileUtils.openFile(path);
+                        if (!ok && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('تعذر فتح الملف على هذا النظام')),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                );
               }
             } catch (e) {
-              if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطأ في التصدير: $e')));
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطأ في التصدير: $e')));
+              }
             }
           },
         ),
@@ -139,8 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: _barcodeController,
               decoration: InputDecoration(
                 hintText: 'مسح/ادخال الباركود واضغط Enter',
-                prefixIcon: const Icon(Icons.qr_code_2),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                prefixIcon: const Icon(Icons.qr_code_2_rounded),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12),
               ),
               textInputAction: TextInputAction.done,
@@ -159,7 +209,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildResponsiveScaffold(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final wide = width >= 1000;
-
     final content = _buildSectionContent(width);
 
     if (wide) {
@@ -167,58 +216,61 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Container(
             width: 260,
-            color: Theme.of(context).colorScheme.surfaceVariant,
+            decoration: const BoxDecoration(
+              color: Color(0xFF0F172A),
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(24), bottomLeft: Radius.circular(24)),
+            ),
             child: Sidebar(selected: _selected, onSelect: _selectSection),
           ),
           Expanded(child: content),
         ],
       );
-    } else {
-      return Scaffold(
-        appBar: _buildTopBar(width, true),
-        drawer: Drawer(
-          child: SafeArea(
-            child: Column(
-              children: [
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Row(
-                    children: [
-                      const CircleAvatar(backgroundColor: Colors.teal, child: Icon(Icons.smoking_rooms, color: Colors.white)),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text('Tobacco POS', style: Theme.of(context).textTheme.titleMedium)),
-                    ],
-                  ),
+    }
+
+    return Scaffold(
+      appBar: _buildTopBar(width, true),
+      drawer: Drawer(
+        child: SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    const CircleAvatar(backgroundColor: Colors.teal, child: Icon(Icons.smoking_rooms, color: Colors.white)),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text('Tobacco POS', style: Theme.of(context).textTheme.titleMedium)),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: ListView(
-                    children: AppSection.values.map((s) {
-                      final isSelected = s == _selected;
-                      return Material(
-                        color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.08) : Colors.transparent,
-                        child: ListTile(
-                          hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.06),
-                          leading: Icon(s.icon, color: isSelected ? Colors.teal : null),
-                          title: Text(s.label, textDirection: TextDirection.rtl),
-                          selected: isSelected,
-                          onTap: () {
-                            Navigator.of(context).pop();
-                            _selectSection(s);
-                          },
-                        ),
-                      );
-                    }).toList(),
-                  ),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView(
+                  children: AppSection.values.map((s) {
+                    final isSelected = s == _selected;
+                    return Material(
+                      color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.08) : Colors.transparent,
+                      child: ListTile(
+                        hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.06),
+                        leading: Icon(s.icon, color: isSelected ? Colors.teal : null),
+                        title: Text(s.label, textDirection: TextDirection.rtl),
+                        selected: isSelected,
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          _selectSection(s);
+                        },
+                      ),
+                    );
+                  }).toList(),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-        body: content,
-      );
-    }
+      ),
+      body: content,
+    );
   }
 
   Widget _buildSectionContent(double width) {
@@ -249,10 +301,8 @@ class _HomeScreenState extends State<HomeScreen> {
           processBarcode: _processBarcode,
           onClearCart: () => pos.clearCart(),
           onCheckout: () async {
-            // check availability first
             final shortages = pos.checkCartAvailability();
             if (shortages.isNotEmpty) {
-              // build message listing shortage items
               final lines = <String>[];
               shortages.forEach((productId, shortageAmt) {
                 final p = pos.getProductById(productId);
@@ -265,7 +315,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 context: context,
                 builder: (ctx) => AlertDialog(
                   title: const Text('كمية غير كافية'),
-                  content: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: lines.map((l) => Text(l)).toList())),
+                  content: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: lines.map((l) => Text(l)).toList(),
+                    ),
+                  ),
                   actions: [
                     TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('إغلاق')),
                   ],
@@ -274,23 +329,24 @@ class _HomeScreenState extends State<HomeScreen> {
               return;
             }
 
-            // perform checkout and show confirmation
             await pos.checkout();
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ الفاتورة وتحديث المخزون')));
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ الفاتورة وتحديث المخزون')));
+            }
           },
         );
       case AppSection.dashboard:
-              return const Directionality(textDirection: TextDirection.rtl, child: Dashboard());
+        return const Directionality(textDirection: TextDirection.rtl, child: Dashboard());
       case AppSection.inventory:
-        return PlaceholderPanel(key: const ValueKey('inventory'), title: s.label, width: width, icon: s.icon);
+        return InventoryPanel(key: const ValueKey('inventory'));
       case AppSection.expensesDebts:
         return PlaceholderPanel(key: const ValueKey('expenses'), title: s.label, width: width, icon: s.icon);
       case AppSection.salesReports:
-              return const Directionality(textDirection: TextDirection.rtl, child: TransactionsPage());
+        return const Directionality(textDirection: TextDirection.rtl, child: TransactionsPage());
       case AppSection.users:
         return PlaceholderPanel(key: const ValueKey('users'), title: s.label, width: width, icon: s.icon);
       case AppSection.settings:
-        return SettingsPanel();
+        return const SettingsPanel();
     }
   }
 
@@ -301,6 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (wide) {
       return Scaffold(
+        backgroundColor: Colors.transparent,
         body: Column(
           children: [
             SizedBox(height: kToolbarHeight, child: _buildTopBar(width, false)),
@@ -311,15 +368,5 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return _buildResponsiveScaffold(context);
-  }
-}
-
-// --- small extension helper ---
-extension FirstWhereOrNullExtension<E> on Iterable<E> {
-  E? firstWhereOrNull(bool Function(E) test) {
-    for (var element in this) {
-      if (test(element)) return element;
-    }
-    return null;
   }
 }

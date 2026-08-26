@@ -63,9 +63,29 @@ class DBHelper {
     await batch.commit(noResult: true);
   }
 
+  static Future<void> insertProduct(Map<String, dynamic> product) async {
+    final db = await database;
+    await db.insert('products', product, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  static Future<void> updateProduct(Map<String, dynamic> product) async {
+    final db = await database;
+    await db.update(
+      'products',
+      product,
+      where: 'id = ?',
+      whereArgs: [product['id']],
+    );
+  }
+
+  static Future<void> deleteProduct(String id) async {
+    final db = await database;
+    await db.delete('products', where: 'id = ?', whereArgs: [id]);
+  }
+
   static Future<List<Map<String, dynamic>>> getProducts() async {
     final db = await database;
-    return await db.query('products');
+    return await db.query('products', orderBy: 'category ASC, name ASC');
   }
 
   static Future<void> updateProductStock(String id, int newStock) async {

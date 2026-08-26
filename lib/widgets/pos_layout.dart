@@ -15,7 +15,6 @@ class PosLayout extends StatelessWidget {
   final void Function(String) processBarcode;
   final VoidCallback onCheckout;
   final VoidCallback onClearCart;
-  final VoidCallback onClearCart;
 
   const PosLayout({
     super.key,
@@ -30,6 +29,7 @@ class PosLayout extends StatelessWidget {
     required this.barcodeController,
     required this.processBarcode,
     required this.onCheckout,
+    required this.onClearCart,
   });
 
   List<String> get categories {

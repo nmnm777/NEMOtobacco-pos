@@ -16,66 +16,32 @@ class PosProvider extends ChangeNotifier {
   final Map<String, CartItem> _cart = {};
 
   PosProvider() {
-    // initialize DB and load data
     _init();
   }
 
   Future<void> _init() async {
     try {
-      // ensure DB is initialized
       await DBHelper.database;
-      // ensure DB seeded with initial products from assets when empty
       final dbProducts = await DBHelper.getProducts();
       if (dbProducts.isEmpty) {
-        // use centralized seed helper to populate DB
         try {
           await SeedData.ensureSeeded();
         } catch (e) {
           debugPrint('SeedData failed: $e');
-          // fallback to the previous approach
           await _loadProductsFromAssets();
-          final batch = _products.map((p) => p.toJson()).toList();
-          await DBHelper.insertProductsBatch(batch);
-        }
-        // re-read from DB after seeding
-        final refreshed = await DBHelper.getProducts();
-        _products.clear();
-        for (final row in refreshed) {
-          _products.add(Product.fromJson({
-            'id': row['id'],
-            'name': row['name'],
-            'category': row['category'],
-            'price': row['price'],
-            'barcode': row['barcode'],
-            'stock': row['stock'],
-          }));
-        }
-      } else {
-        _products.clear();
-        for (final row in dbProducts) {
-          _products.add(Product.fromJson({
-            'id': row['id'],
-            'name': row['name'],
-            'category': row['category'],
-            'price': row['price'],
-            'barcode': row['barcode'],
-            'stock': row['stock'],
-          }));
+          await DBHelper.insertProductsBatch(_products.map((p) => p.toJson()).toList());
         }
       }
+      await _reloadProductsFromDb();
 
-      // load sales from DB; if none, load from assets and optionally persist
       final dbSales = await DBHelper.getSales();
       if (dbSales.isEmpty) {
         await _loadSalesFromAssets();
-        // persist asset sales into DB
         if (_sales.isNotEmpty) {
           final saleGroup = DateTime.now().millisecondsSinceEpoch.toString();
-          final items = _sales.map((s) => {
-                'productId': s.productId,
-                'qty': s.qty,
-                'total': s.total,
-              }).toList();
+          final items = _sales
+              .map((s) => {'productId': s.productId, 'qty': s.qty, 'total': s.total})
+              .toList();
           await DBHelper.insertSaleItems(saleGroup, items);
         }
       } else {
@@ -98,8 +64,34 @@ class PosProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> _reloadProductsFromDb() async {
+    final dbProducts = await DBHelper.getProducts();
+    _products.clear();
+    for (final row in dbProducts) {
+      _products.add(Product.fromJson({
+        'id': row['id'],
+        'name': row['name'],
+        'name_ar': row['name_ar'],
+        'nameAr': row['name_ar'],
+        'category': row['category'],
+        'price': row['price'],
+        'barcode': row['barcode'],
+        'stock': row['stock'],
+      }));
+    }
+  }
+
   Future<void> _loadProductsFromAssets() async {
     try {
+      final raw = await rootBundle.loadString('assets/seed_data.json');
+      final Map<String, dynamic> jsonData = json.decode(raw) as Map<String, dynamic>;
+      final data = jsonData['products'] as List<dynamic>? ?? const [];
+      _products.clear();
+      for (final e in data) {
+        _products.add(Product.fromJson(e as Map<String, dynamic>));
+      }
+      notifyListeners();
+    } on FlutterError catch (_) {
       final raw = await rootBundle.loadString('assets/products.json');
       final List<dynamic> data = json.decode(raw) as List<dynamic>;
       _products.clear();
@@ -108,7 +100,7 @@ class PosProvider extends ChangeNotifier {
       }
       notifyListeners();
     } catch (e) {
-      debugPrint('Failed to load products.json: $e');
+      debugPrint('Failed to load products seed: $e');
     }
   }
 
@@ -121,8 +113,6 @@ class PosProvider extends ChangeNotifier {
         final s = Sale.fromJson(e as Map<String, dynamic>);
         _sales.add(s);
       }
-      // Also persist into DB if not present
-      // For simplicity, when DB is empty we will use assets initial load elsewhere
       notifyListeners();
     } catch (e) {
       debugPrint('Failed to load sales.json: $e');
@@ -133,8 +123,8 @@ class PosProvider extends ChangeNotifier {
   String get selectedCategory => _selectedCategory;
   Map<String, CartItem> get cart => _cart;
   List<Sale> get sales => List.unmodifiable(_sales);
+  List<String> get categories => ['All', ..._products.map((p) => p.category).toSet().toList()..sort()];
 
-  /// Group sales by saleGroup into TransactionSummary objects
   List<TransactionSummary> getTransactions() {
     final Map<String, List<Sale>> groups = {};
     for (final s in _sales) {
@@ -146,18 +136,20 @@ class PosProvider extends ChangeNotifier {
       final date = items.isNotEmpty ? items.first.date : DateTime.now();
       out.add(TransactionSummary(saleGroup: group, date: date, total: total, items: items));
     });
-    // sort by date desc
     out.sort((a, b) => b.date.compareTo(a.date));
     return out;
   }
 
-  /// Return product model by id or null
   Product? getProductById(String id) {
     try {
       return _products.firstWhere((p) => p.id == id);
-    } catch (e) {
+    } catch (_) {
       return null;
     }
+  }
+
+  Product? findByBarcode(String code) {
+    return _products.firstWhereOrNull((p) => p.barcode.trim() == code.trim());
   }
 
   List<Product> filteredProducts() {
@@ -168,6 +160,62 @@ class PosProvider extends ChangeNotifier {
   void setCategory(String c) {
     _selectedCategory = c;
     notifyListeners();
+  }
+
+  Future<void> addProduct(Product product) async {
+    final trimmed = product.copyWith(
+      id: product.id.trim(),
+      name: product.name.trim(),
+      category: product.category.trim(),
+      barcode: product.barcode.trim(),
+      nameAr: product.nameAr?.trim(),
+    );
+    if (trimmed.id.isEmpty || trimmed.name.isEmpty || trimmed.barcode.isEmpty) {
+      throw ArgumentError('يجب إدخال اسم ورمز باركود للمنتج');
+    }
+    final existing = _products.any((p) => p.id == trimmed.id || p.barcode == trimmed.barcode);
+    if (existing) {
+      throw ArgumentError('معرف أو باركود المنتج موجود بالفعل');
+    }
+    await DBHelper.insertProduct(trimmed.toJson());
+    _products.add(trimmed);
+    notifyListeners();
+  }
+
+  Future<void> updateProduct(Product product) async {
+    final trimmed = product.copyWith(
+      id: product.id.trim(),
+      name: product.name.trim(),
+      category: product.category.trim(),
+      barcode: product.barcode.trim(),
+      nameAr: product.nameAr?.trim(),
+    );
+    final idx = _products.indexWhere((p) => p.id == trimmed.id);
+    if (idx == -1) {
+      throw ArgumentError('المنتج غير موجود');
+    }
+    await DBHelper.updateProduct(trimmed.toJson());
+    _products[idx] = trimmed;
+    notifyListeners();
+  }
+
+  Future<void> deleteProduct(String id) async {
+    await DBHelper.deleteProduct(id);
+    _products.removeWhere((p) => p.id == id);
+    _cart.remove(id);
+    notifyListeners();
+  }
+
+  Future<void> adjustStock(String id, int delta) async {
+    final product = getProductById(id);
+    if (product == null) return;
+    final nextStock = (product.stock + delta).clamp(0, 999999);
+    await DBHelper.updateProductStock(id, nextStock);
+    final idx = _products.indexWhere((p) => p.id == id);
+    if (idx != -1) {
+      _products[idx] = _products[idx].copyWith(stock: nextStock);
+      notifyListeners();
+    }
   }
 
   void addToCart(Product p, {int qty = 1}) {
@@ -194,18 +242,11 @@ class PosProvider extends ChangeNotifier {
 
   double get totalPrice => _cart.values.fold(0.0, (s, it) => s + it.total);
 
-  Product? findByBarcode(String code) {
-    return _products.firstWhereOrNull((p) => p.barcode.trim() == code.trim());
-  }
-
   void clearCart() {
     _cart.clear();
     notifyListeners();
   }
 
-  /// Perform checkout: persist sales, update product stocks, clear cart
-  /// Check whether cart items are available in stock.
-  /// Returns a map productId -> shortageAmount (positive) for items that exceed stock.
   Map<String, int> checkCartAvailability() {
     final shortages = <String, int>{};
     for (final ci in _cart.values) {
@@ -220,70 +261,41 @@ class PosProvider extends ChangeNotifier {
   Future<void> checkout() async {
     if (_cart.isEmpty) return;
 
-    // assume caller checked availability
     final saleGroup = DateTime.now().millisecondsSinceEpoch.toString();
-
-    // prepare items and update stocks
     final items = <Map<String, dynamic>>[];
     for (final ci in _cart.values) {
-      items.add({
-        'productId': ci.product.id,
-        'qty': ci.qty,
-        'total': ci.total,
-      });
-      // update local product stock
+      items.add({'productId': ci.product.id, 'qty': ci.qty, 'total': ci.total});
       final productIndex = _products.indexWhere((p) => p.id == ci.product.id);
       if (productIndex != -1) {
         final current = _products[productIndex];
         final newStock = (current.stock - ci.qty).clamp(0, 1 << 31);
-        _products[productIndex] = Product(
-          id: current.id,
-          name: current.name,
-          nameAr: current.nameAr,
-          category: current.category,
-          price: current.price,
-          barcode: current.barcode,
-          stock: newStock,
-        );
-        // persist stock to DB
+        _products[productIndex] = current.copyWith(stock: newStock);
         await DBHelper.updateProductStock(current.id, newStock);
       }
     }
 
-    // insert sale items into DB
     await DBHelper.insertSaleItems(saleGroup, items);
 
-    // add to in-memory sales list
     final now = DateTime.now();
     for (final it in items) {
-      _sales.add(Sale(saleGroup: saleGroup, productId: it['productId'] as String, qty: it['qty'] as int, total: (it['total'] as num).toDouble(), date: now));
+      _sales.add(Sale(
+        saleGroup: saleGroup,
+        productId: it['productId'] as String,
+        qty: it['qty'] as int,
+        total: (it['total'] as num).toDouble(),
+        date: now,
+      ));
     }
 
-    // clear cart
     _cart.clear();
     notifyListeners();
   }
 
-  /// Reset database to factory defaults: clears data and re-seeds products
   Future<void> resetToDefaults() async {
     try {
       await DBHelper.clearAllData();
       await SeedData.ensureSeeded();
-
-      // reload products and sales into memory
-      final dbProducts = await DBHelper.getProducts();
-      _products.clear();
-      for (final row in dbProducts) {
-        _products.add(Product.fromJson({
-          'id': row['id'],
-          'name': row['name'],
-          'name_ar': row['name_ar'],
-          'category': row['category'],
-          'price': row['price'],
-          'barcode': row['barcode'],
-          'stock': row['stock'],
-        }));
-      }
+      await _reloadProductsFromDb();
 
       final dbSales = await DBHelper.getSales();
       _sales.clear();
@@ -305,23 +317,16 @@ class PosProvider extends ChangeNotifier {
     }
   }
 
-  // ---- Dashboard helpers ----
   int get totalProducts => _products.length;
-
   int get totalCategories => _products.map((p) => p.category).toSet().length;
-
   double get salesTotal => _sales.fold(0.0, (s, it) => s + it.total);
-
   int get ordersCount => _sales.map((s) => s.saleGroup).toSet().length;
-
   List<Product> get lowStockProducts => _products.where((p) => p.stock <= 50).toList(growable: false);
 
-  // get sales in a date range
   List<Sale> salesBetween(DateTime start, DateTime end) =>
       _sales.where((s) => s.date.isAfter(start) && s.date.isBefore(end)).toList(growable: false);
 }
 
-// small extension locally to avoid collection package dependency
 extension FirstWhereOrNullExtension<E> on Iterable<E> {
   E? firstWhereOrNull(bool Function(E) test) {
     for (var element in this) {
