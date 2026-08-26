@@ -14,6 +14,8 @@ class PosLayout extends StatelessWidget {
   final TextEditingController barcodeController;
   final void Function(String) processBarcode;
   final VoidCallback onCheckout;
+  final VoidCallback onClearCart;
+  final VoidCallback onClearCart;
 
   const PosLayout({
     super.key,
@@ -196,7 +198,7 @@ class PosLayout extends StatelessWidget {
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.clear),
                     label: const Text('تفريغ'),
-                    onPressed: cart.isEmpty ? null : () => cart.clear(),
+                  onPressed: cart.isEmpty ? null : onClearCart,
                   ),
                 ),
                 const SizedBox(width: 8),

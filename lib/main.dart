@@ -206,7 +206,33 @@ class _HomeScreenState extends State<HomeScreen> {
           totalPriceGetter: () => pos.totalPrice,
           barcodeController: _barcodeController,
           processBarcode: _processBarcode,
+          onClearCart: () => pos.clearCart(),
           onCheckout: () async {
+            // check availability first
+            final shortages = pos.checkCartAvailability();
+            if (shortages.isNotEmpty) {
+              // build message listing shortage items
+              final lines = <String>[];
+              shortages.forEach((productId, shortageAmt) {
+                final p = pos.getProductById(productId);
+                final name = p?.displayName ?? productId;
+                final available = p != null ? p.stock : 0;
+                lines.add('$name — المطلوب ${shortageAmt + available}، المتوفر $available (نقص ${shortageAmt})');
+              });
+
+              await showDialog<void>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('كمية غير كافية'),
+                  content: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: lines.map((l) => Text(l)).toList())),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('إغلاق')),
+                  ],
+                ),
+              );
+              return;
+            }
+
             // perform checkout and show confirmation
             await pos.checkout();
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ الفاتورة وتحديث المخزون')));

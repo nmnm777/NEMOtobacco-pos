@@ -26,7 +26,13 @@ class PlaceholderPanel extends StatelessWidget {
                     const SizedBox(width: 12),
                     Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     const Spacer(),
-                    ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.add), label: const Text('جديد')),
+                    ElevatedButton.icon(onPressed: () {
+                      showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+                        title: const Text('قيد التطوير'),
+                        content: const Text('هذه الميزة قيد التطوير حالياً.'),
+                        actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('إغلاق'))],
+                      ));
+                    }, icon: const Icon(Icons.add), label: const Text('جديد')),
                   ],
                 ),
                 const SizedBox(height: 18),
