@@ -29,13 +29,15 @@ class Sidebar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 8),
               children: AppSection.values.map((s) {
                 final isSelected = s == selected;
-                return ListTile(
-                  tileColor: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.08) : null,
-                  hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.06),
-                  leading: Icon(s.icon, color: isSelected ? Colors.teal : null),
-                  title: Text(s.label, textDirection: TextDirection.rtl),
-                  selected: isSelected,
-                  onTap: () => onSelect(s),
+                return Material(
+                  color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.08) : Colors.transparent,
+                  child: ListTile(
+                    hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.06),
+                    leading: Icon(s.icon, color: isSelected ? Colors.teal : null),
+                    title: Text(s.label, textDirection: TextDirection.rtl),
+                    selected: isSelected,
+                    onTap: () => onSelect(s),
+                  ),
                 );
               }).toList(),
             ),

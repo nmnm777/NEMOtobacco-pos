@@ -154,16 +154,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: ListView(
                     children: AppSection.values.map((s) {
                       final isSelected = s == _selected;
-                      return ListTile(
-                        tileColor: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.08) : null,
-                        hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.06),
-                        leading: Icon(s.icon, color: isSelected ? Colors.teal : null),
-                        title: Text(s.label, textDirection: TextDirection.rtl),
-                        selected: isSelected,
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          _selectSection(s);
-                        },
+                      return Material(
+                        color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.08) : Colors.transparent,
+                        child: ListTile(
+                          hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.06),
+                          leading: Icon(s.icon, color: isSelected ? Colors.teal : null),
+                          title: Text(s.label, textDirection: TextDirection.rtl),
+                          selected: isSelected,
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            _selectSection(s);
+                          },
+                        ),
                       );
                     }).toList(),
                   ),
