@@ -24,4 +24,3 @@ flutter:
   assets:
     - assets/products.json
     - assets/sales.json
-    - assets/fonts/Amiri-Regular.ttf
