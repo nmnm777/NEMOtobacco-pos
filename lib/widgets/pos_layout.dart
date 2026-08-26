@@ -42,6 +42,23 @@ class PosLayout extends StatelessWidget {
     ];
   }
 
+  String _localizedCategory(String category) {
+    switch (category) {
+      case 'All':
+        return 'الكل';
+      case 'Cigarettes':
+        return 'سجائر';
+      case 'Shisha / Molasses':
+        return 'شيشة ومعسل';
+      case 'Vapes':
+        return 'فيب';
+      case 'Accessories':
+        return 'إكسسوارات';
+      default:
+        return category;
+    }
+  }
+
   List<Product> filteredProducts() {
     if (selectedCategory == 'All') return products;
     return products.where((p) => p.category == selectedCategory).toList(growable: false);
@@ -67,7 +84,7 @@ class PosLayout extends StatelessWidget {
               final cat = categories[index];
               final selected = cat == selectedCategory;
               return ChoiceChip(
-                label: Text(cat, textDirection: TextDirection.ltr),
+                label: Text(_localizedCategory(cat), textDirection: TextDirection.rtl),
                 selected: selected,
                 onSelected: (_) => onCategoryChanged(cat),
               );
